@@ -57,6 +57,8 @@ import org.fxmisc.easybind.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.String.format;
+
 public class UnlockController implements ViewController {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UnlockController.class);
@@ -397,6 +399,17 @@ public class UnlockController implements ViewController {
 			messageText.setText(null);
 			downloadsPageLink.setVisible(false);
 			listener.ifPresent(lstnr -> lstnr.didUnlock(vault));
+			vault.getMountingStrategy().ifPresent(vol ->{
+				if(!vol.equals(settings.preferredVolumeImpl().get())){
+					Alert confirmDialog = DialogBuilderUtil.buildInformationDialog( //
+							format(localization.getString("unlock.warningMessage.fallbackMounterUsed.title"), vault.name().getValue()), //
+							localization.getString("unlock.warningMessage.fallbackMounterUsed.header"), //
+							localization.getString("unlock.warningMessage.fallbackMounterUsed.content"), //
+							ButtonType.OK);
+
+					Optional<ButtonType> choice = confirmDialog.showAndWait();
+				}
+			});
 		}).onError(InvalidSettingsException.class, e -> {
 			messageText.setText(localization.getString("unlock.errorMessage.invalidMountPath"));
 			advancedOptions.setVisible(true);

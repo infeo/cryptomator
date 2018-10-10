@@ -15,6 +15,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.cryptomator.common.LazyInitializer;
 import org.cryptomator.common.settings.Settings;
 import org.cryptomator.common.settings.VaultSettings;
+import org.cryptomator.common.settings.VolumeImpl;
 import org.cryptomator.cryptofs.CryptoFileSystem;
 import org.cryptomator.cryptofs.CryptoFileSystemProperties;
 import org.cryptomator.cryptofs.CryptoFileSystemProvider;
@@ -255,6 +257,19 @@ public class Vault {
 		} else {
 			vaultSettings.mountName().set(VaultSettings.normalizeMountName(mountName));
 		}
+	}
+
+	public Optional<VolumeImpl> getMountingStrategy(){
+		if(state.get().equals(State.UNLOCKED)){
+			if(volume instanceof FuseVolume){
+				return Optional.of(VolumeImpl.FUSE);
+			} else if (volume instanceof DokanyVolume){
+				return Optional.of(VolumeImpl.DOKANY);
+			} else {
+				return Optional.of(VolumeImpl.WEBDAV);
+			}
+		}
+		return Optional.empty();
 	}
 
 	public Character getWinDriveLetter() {
